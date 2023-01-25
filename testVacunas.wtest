@@ -1,0 +1,292 @@
+import vacunas.*
+import personas.*
+
+describe "tests de Anticuerpos y Vencimientos de paifer con efecto" {
+
+	const personaMenorIgual40 = new Persona(nombre="Tefi",edad = 10, viveEn="CABA", anticuerpos = 1)
+	const personaMayor40 = new Persona(nombre="Pedro",edad = 45, viveEn="CABA", anticuerpos = 1)
+
+	const persona = personaMenorIgual40
+	
+	const fechaAplicacion = new Date(day = 03,month = 03,year = 2022)
+	
+	const fechaVencimientoMenorIgual40 = new Date(day = 03,month = 12,year = 2022)
+	const fechaVencimientoMayor40 = new Date(day = 03,month = 09,year = 2022)
+	
+	method definirCalendario(_persona,fecha){
+		const calendarioTest = object{
+			method hoy() = fecha 
+		}
+		_persona.calendarioActual(calendarioTest)
+	}
+	
+	test "Anticuerpos generados por vacuna paifer" {
+		self.definirCalendario(persona,fechaAplicacion)
+		persona.vacunar(paifer)
+		
+		assert.equals(10,persona.anticuerpos())
+	}
+	
+	test "Vencimiento de vacuna paifer a persona de menos o 40 anios" {
+		self.definirCalendario(personaMenorIgual40,fechaAplicacion)
+		personaMenorIgual40.vacunar(paifer)
+		
+		assert.equals(fechaVencimientoMenorIgual40,personaMenorIgual40.historialDeVacunas().get(0).fechaDeVencimiento())
+	}
+		
+	test "Vencimiento de vacuna paifer a persona mayor de 40 anios" {
+		self.definirCalendario(personaMayor40,fechaAplicacion)
+		personaMayor40.vacunar(paifer)
+		
+		assert.equals(fechaVencimientoMayor40,personaMayor40.historialDeVacunas().get(0).fechaDeVencimiento())
+	}
+	
+}
+
+describe "test de Anticuerpos y Vencimientos de LaRussa"{
+	
+	const persona = new Persona(nombre="Tefi",edad = 10, viveEn="CABA", anticuerpos = 1)
+	
+	const fechaAplicacion = new Date(day = 03,month = 03,year = 2022)
+	
+	const fechaVencimiento = new Date(day = 03,month = 03,year = 2023)
+	
+	const laRussa2 = new LaRussa(efectoMultiplicador = 2)
+	
+	method definirCalendario(_persona,fecha){
+		const calendarioTest = object{
+			method hoy() = fecha 
+		}
+		_persona.calendarioActual(calendarioTest)
+	}
+	
+	method initialize(){
+		self.definirCalendario(persona,fechaAplicacion)
+		persona.vacunar(laRussa2)
+	}
+	
+	test "Anticuerpos generados por vacuna laRussa2" {	
+		assert.equals(2,persona.anticuerpos())
+	}
+	//get(0)
+	test "Vencimiento de vacuna laRussa2" {
+		assert.equals(fechaVencimiento,persona.historialDeVacunas().get(0).fechaDeVencimiento())
+	}
+		
+}
+
+
+describe "test de Anticuerpos y Vencimientos de astraLavistaZeneca"{
+	
+	const personaNombrePar = new Persona(nombre="Juan", edad=43, viveEn="CABA", anticuerpos=1)
+	const personaNombreImpar = new Persona(nombre="Julia", edad=23, viveEn="CABA", anticuerpos=1)
+	const persona = personaNombrePar
+	
+	const fechaAplicacion = new Date(day = 03,month = 03,year = 2022)
+	
+	const fechaVencimientoNombrePar = new Date(day = 03,month = 09,year = 2022)
+	const fechaVencimientoNombreImpar = new Date(day = 03,month = 10,year = 2022)
+		
+	method definirCalendario(_persona,fecha){
+		const calendarioTest = object{
+			method hoy() = fecha 
+		}
+		_persona.calendarioActual(calendarioTest)
+	}
+	
+	test "Anticuerpos generados por vacuna astraLaVistaZeneca"{
+		self.definirCalendario(persona,fechaAplicacion)
+		persona.vacunar(astraLaVistaZeneca)
+		
+		assert.equals(10001, persona.anticuerpos())
+	}
+	
+	test "Vencimiento de inmunidad en persona con nombre par"{
+		self.definirCalendario(personaNombrePar,fechaAplicacion)
+		personaNombrePar.vacunar(astraLaVistaZeneca)
+		
+		assert.equals(fechaVencimientoNombrePar,personaNombrePar.historialDeVacunas().get(0).fechaDeVencimiento())
+	}
+	
+	test "Vencimiento de inmunidad en persona con nombre impar"{
+		self.definirCalendario(personaNombreImpar,fechaAplicacion)
+		personaNombreImpar.vacunar(astraLaVistaZeneca)
+		
+		assert.equals(fechaVencimientoNombreImpar,personaNombreImpar.historialDeVacunas().get(0).fechaDeVencimiento())
+	}
+}
+
+describe "test de Anticuerpos e Inmunidad de combineta"{
+	
+	const persona = new Persona(nombre="pelele", edad=33, viveEn="CABA", anticuerpos= 10)
+	const fechaAplicacion = new Date(day = 11,month = 11,year = 2022)
+	const fechaVencimiento = new Date(day = 11,month = 08,year = 2023)
+	
+	const laRussa5 = new LaRussa(efectoMultiplicador=5)
+
+	const mixVacunas = [astraLaVistaZeneca, laRussa5, paifer]
+	
+	const combineta = new Combineta(vacunas = mixVacunas)
+	
+	method definirCalendario(_persona,fecha){
+		const calendarioTest = object{
+			method hoy() = fecha 
+		}
+		_persona.calendarioActual(calendarioTest)
+	}
+	
+	method initialize(){
+		self.definirCalendario(persona,fechaAplicacion)
+		persona.vacunar(combineta)
+	}
+	
+	test "Anticuerpos tras vacunar con mixVacunas"{
+		assert.equals(50, persona.anticuerpos())
+	}
+	
+	test "Inmunidad tras vacunar con mixVacunas"{
+		assert.equals(fechaVencimiento, persona.historialDeVacunas().get(0).fechaDeVencimiento())
+	}
+	
+}
+
+
+describe "tests de costos de paifer (sin efecto)" {
+
+	const personaMenor18YMenorI30 = new Persona(nombre="Tomas",edad = 10, viveEn="CABA", anticuerpos = 1)
+	const personaMayorI18YMenorI30 = new Persona(nombre="Sofi", edad = 20, viveEn="CABA", anticuerpos = 1)
+	const personaMayorI18YMayorI30 = new Persona(nombre="Andre",edad = 40, viveEn="CABA", anticuerpos = 1)
+
+	
+	test "costo vacuna paifer persona de edad < 18 y <= 30" {
+		assert.equals(1400,paifer.costo(personaMenor18YMenorI30))
+	}
+	
+	test "costo vacuna paifer persona de edad >= 18 y <= 30" {
+		assert.equals(1100,paifer.costo(personaMayorI18YMenorI30))
+	}
+		
+	test "costo vacuna paifer persona de edad >= 18 y > 30" {
+		assert.equals(1600,paifer.costo(personaMayorI18YMayorI30))
+	}
+	
+}
+
+
+describe "tests de costos de laRussa (sin efecto)" {
+
+	const personaMayorA30 = new Persona(nombre="tito", edad=78, viveEn="Gerli", anticuerpos=1)
+	const personaMenorIA30 = new Persona(nombre="tito", edad=18, viveEn="Gerli", anticuerpos=1)
+	
+	
+	const laRussa12 = new LaRussa(efectoMultiplicador = 12)
+	
+	test "Costo de laRussa12 para persona mayor de 30"{
+		assert.equals(4600, laRussa12.costo(personaMayorA30))
+	}
+	
+	test "Costo de laRussa12 para persona menor o igual a 30"{
+		assert.equals(2200, laRussa12.costo(personaMenorIA30))
+	}
+	
+}
+
+describe "tests de costos de astraLaVistaZeneca (sin efecto)" {
+
+	const personaMayorA30 = new Persona(nombre="tito", edad=78, viveEn="Gerli", anticuerpos=1)
+	const personaMenorIA30 = new Persona(nombre="tito", edad=18, viveEn="Gerli", anticuerpos=1)
+	
+	const laRussa12 = new LaRussa(efectoMultiplicador = 12)
+	
+	test "Costo de laRussa12 para persona mayor de 30"{
+		assert.equals(4600, laRussa12.costo(personaMayorA30))
+	}
+	
+	test "Costo de laRussa12 para persona menor o igual a 30"{
+		assert.equals(2200, laRussa12.costo(personaMenorIA30))
+	}
+	
+}
+
+describe "tests de costos de astraLaVistaZeneca (sin efecto) "{
+	
+	const personaEspecialMenorI30 = new Persona(nombre="Lucia", edad=17, viveEn="Tierra del Fuego", anticuerpos=10)
+	const personaNoEspecialMenorI30 = new Persona(nombre="Lucio", edad=17, viveEn="Tierra de Nadie", anticuerpos=10)
+	const personaEspecialMayor30 = new Persona(nombre="Lucia", edad=40, viveEn="Tierra del Fuego", anticuerpos=10)
+	const personaNoEspecialMayor30 = new Persona(nombre="Lucio", edad=40, viveEn="Tierra de Nadie", anticuerpos=10)
+	
+	
+	test "astraLaVistaZeneca para persona especial y menor o igual a 30"{
+		assert.equals(3000, astraLaVistaZeneca.costo(personaEspecialMenorI30))
+	}
+	
+	test "astraLaVistaZeneca para persona no Especial y menor o igual a 30"{
+		assert.equals(1000, astraLaVistaZeneca.costo(personaNoEspecialMenorI30))
+	}
+	
+	test "astraLaVistaZeneca para persona especial y mayor a 30"{
+		assert.equals(3500, astraLaVistaZeneca.costo(personaEspecialMayor30))
+	}
+	
+	test "astraLaVistaZeneca para persona no especial y mayor a 30"{
+		assert.equals(1500, astraLaVistaZeneca.costo(personaNoEspecialMayor30))
+	}
+}
+
+
+describe "tests de costos de combineta (sin efecto)" {
+
+	const persona = new Persona(nombre="tito", edad=78, viveEn="Gerli", anticuerpos=1)
+	
+	const laRussa12 = new LaRussa(efectoMultiplicador = 12)
+	const mixta = new Combineta(vacunas = [paifer, astraLaVistaZeneca, laRussa12])
+	
+	
+	test "Combineta de [paifer, astraLaVistaZeneca, laRussa12]"{
+		assert.equals(11800, mixta.costo(persona))
+	}
+	
+}
+
+
+describe "tests de plan de Vacunacion"{
+	const inmunex5Meses = new InmunidosasVariables(mesesDeInmunidad=5)
+	const persona = new Persona(nombre = "tito",edad = 78, viveEn="Gerli", anticuerpos = 1,criterioEleccion = inmunex5Meses)
+	const persona2 = new Persona(nombre = "Fer",edad = 10, viveEn="CABA", anticuerpos = 20000,criterioEleccion = anticuerposa)
+	
+	const ningunosa = object{
+		method elige(vacuna,persona) = false
+	}
+	
+	const outsider = new Persona(nombre = "gil",edad = 78, viveEn="Gerli", anticuerpos = 1,criterioEleccion = ningunosa)
+	
+	
+	test "costo del plan para 2 personas con preferencias y 1 outsider"{
+		planDeVacunacion.personas([persona, persona2, outsider])
+		assert.equals(4800, planDeVacunacion.costoPlanDeVacunacion())
+	}
+	
+}
+
+
+describe "test de confirmacion de turnos"{
+	const persona2 = new Persona(nombre = "tilinca",edad = 78, viveEn="Gerli", anticuerpos = 1,criterioEleccion = inmunidosasFijas)
+	const persona3 = new Persona(nombre = "titti",edad = 78, viveEn="Gerli", anticuerpos = 1,criterioEleccion = anticuerposa)
+	
+	const ningunosa = object{
+		method elige(vacuna,persona) = false
+	}
+	const outsider = new Persona(nombre = "gil",edad = 78, viveEn="Gerli", anticuerpos = 1,criterioEleccion = ningunosa)
+
+	method initialize(){
+		planDeVacunacion.personas([persona2, persona3])
+	}
+	
+	test "persona con turno confirmado"{
+		planDeVacunacion.confirmarTurno(persona2)
+		assert.equals(astraLaVistaZeneca, persona2.buscarRegistro(astraLaVistaZeneca).get(0).vacuna())
+	}
+	test "persona que no tiene vacuna aplicable. ERROR"{
+		assert.throwsExceptionWithMessage("La vacuna indicada no es aplicable para la persona", {planDeVacunacion.confirmarTurno(persona3)})
+	}
+}
