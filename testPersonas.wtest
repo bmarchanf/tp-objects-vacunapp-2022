@@ -1,0 +1,59 @@
+import vacunas.*
+import personas.*
+
+describe "tests de persona con criterioEleccion: cualquierosa" {
+	
+	const persona = new Persona(nombre = "Juan",edad = 10, viveEn="CABA", anticuerpos = 20000,criterioEleccion = cualquierosa)
+
+	test "persona elige vacuna" {
+		assert.that(persona.criterioEleccion().elige(paifer,persona))
+	}
+
+}
+
+
+describe "tests de persona con criterioEleccion:anticuerposa" {
+	
+	const persona = new Persona(nombre = "Fer",edad = 10, viveEn="CABA", anticuerpos = 20000,criterioEleccion = anticuerposa)
+	const laRussa1 = new LaRussa(efectoMultiplicador = 1)
+
+	test "persona elige vacuna que le genera mas de 100.000 anticuerpos" {
+		assert.that(persona.criterioEleccion().elige(paifer,persona))
+	}
+	
+	test "persona no elige vacuna que no le genera mas de 100.000 anticuerpos" {
+		assert.notThat(persona.criterioEleccion().elige(laRussa1,persona))
+	}
+
+}
+
+describe "tests de persona con criterioEleccion: inmunidosasFijas" {
+	
+	const persona = new Persona(nombre = "tito",edad = 78, viveEn="Gerli", anticuerpos = 1,criterioEleccion = inmunidosasFijas)
+	const laRussa12 = new LaRussa(efectoMultiplicador = 12)
+
+	test "persona elige vacuna si conserva inmunidad al 05/03/2023" {
+		assert.that(persona.criterioEleccion().elige(paifer,persona))
+	}
+	
+	test "persona no elige vacuna porque no conserva inmunidad al 05/03/2023" {
+		assert.notThat(persona.criterioEleccion().elige(laRussa12,persona))
+	}
+
+}
+
+describe "tests de persona con criterioEleccion: inmunidosasVariables" {
+	
+	const inmunex5Meses = new InmunidosasVariables(mesesDeInmunidad=5)
+	const persona = new Persona(nombre = "tito",edad = 78, viveEn="Gerli", anticuerpos = 1,criterioEleccion = inmunex5Meses)
+	const laRussa12 = new LaRussa(efectoMultiplicador = 12)
+
+	test "persona elige vacuna si despues de 5 meses conserva inmunidad" {
+		assert.that(persona.criterioEleccion().elige(paifer,persona))
+	}
+	
+	test "persona no elige vacuna porque no conserva inmunidad luego de 5 meses" {
+		assert.notThat(persona.criterioEleccion().elige(laRussa12,persona))
+	}
+
+}
